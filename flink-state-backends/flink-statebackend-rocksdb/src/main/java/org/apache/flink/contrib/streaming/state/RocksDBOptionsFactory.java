@@ -20,10 +20,7 @@ package org.apache.flink.contrib.streaming.state;
 
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.DBOptions;
-import org.rocksdb.ReadOptions;
-import org.rocksdb.WriteOptions;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -31,10 +28,10 @@ import java.util.Collection;
  * Options have to be created lazily by this factory, because the {@code Options}
  * class is not serializable and holds pointers to native code.
  *
- * <p>A typical pattern to use this OptionsFactory is as follows:
+ * <p>A typical pattern to use this RocksDBOptionsFactory is as follows:
  *
  * <pre>{@code
- * rocksDbBackend.setOptions(new RocksDBOptionsFactory() {
+ * rocksDbBackend.setRocksDBOptions(new RocksDBOptionsFactory() {
  *
  *		public DBOptions createDBOptions(DBOptions currentOptions, Collection<AutoCloseable> handlesToClose) {
  *			return currentOptions.setMaxOpenFiles(1024);
@@ -51,8 +48,7 @@ import java.util.Collection;
  * });
  * }</pre>
  */
-@SuppressWarnings("deprecation")
-public interface RocksDBOptionsFactory extends OptionsFactory, java.io.Serializable {
+public interface RocksDBOptionsFactory extends java.io.Serializable {
 
 	/**
 	 * This method should set the additional options on top of the current options object.
@@ -93,59 +89,5 @@ public interface RocksDBOptionsFactory extends OptionsFactory, java.io.Serializa
 	 */
 	default RocksDBNativeMetricOptions createNativeMetricsOptions(RocksDBNativeMetricOptions nativeMetricOptions) {
 		return nativeMetricOptions;
-	}
-
-	/**
-	 * This method should set the additional options on top of the current options object.
-	 * The current options object may contain pre-defined options based on flags that have
-	 * been configured on the state backend.
-	 *
-	 * <p>It is important to set the options on the current object and return the result from
-	 * the setter methods, otherwise the pre-defined options may get lost.
-	 *
-	 * @param currentOptions The options object with the pre-defined options.
-	 * @param handlesToClose The collection to register newly created {@link org.rocksdb.RocksObject}s.
-	 * @return The options object on which the additional options are set.
-	 */
-	default WriteOptions createWriteOptions(WriteOptions currentOptions, Collection<AutoCloseable> handlesToClose) {
-		return currentOptions;
-	}
-
-	/**
-	 * This method should set the additional options on top of the current options object.
-	 * The current options object may contain pre-defined options based on flags that have
-	 * been configured on the state backend.
-	 *
-	 * <p>It is important to set the options on the current object and return the result from
-	 * the setter methods, otherwise the pre-defined options may get lost.
-	 *
-	 * @param currentOptions The options object with the pre-defined options.
-	 * @param handlesToClose The collection to register newly created {@link org.rocksdb.RocksObject}s.
-	 * @return The options object on which the additional options are set.
-	 */
-	default ReadOptions createReadOptions(ReadOptions currentOptions, Collection<AutoCloseable> handlesToClose) {
-		return currentOptions;
-	}
-
-	// ------------------------------------------------------------------------
-	//  for compatibility
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Do not override these methods, they are only to maintain interface compatibility with
-	 * prior versions. They will be removed in one of the next versions.
-	 */
-	@Override
-	default DBOptions createDBOptions(DBOptions currentOptions) {
-		return createDBOptions(currentOptions, new ArrayList<>());
-	}
-
-	/**
-	 * Do not override these methods, they are only to maintain interface compatibility with
-	 * prior versions. They will be removed in one of the next versions.
-	 */
-	@Override
-	default ColumnFamilyOptions createColumnOptions(ColumnFamilyOptions currentOptions) {
-		return createColumnOptions(currentOptions, new ArrayList<>());
 	}
 }
